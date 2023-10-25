@@ -103,6 +103,11 @@ func (s *service) NodeUnpublishVolume(
 		return nil, status.Errorf(codes.InvalidArgument, "NodeUnpublishVolume - TargetPath is required")
 	}
 
+	// If the target path does not exist, consider it unmounted
+	if _, err := os.Stat(req.GetTargetPath()); os.IsNotExist(err) {
+		return &csi.NodeUnpublishVolumeResponse{}, nil
+	}
+
 	mounter := mount.New("")
 	notMountPoint, err := mount.IsNotMountPoint(mounter, req.GetTargetPath())
 	if err != nil {
